@@ -7,14 +7,9 @@ static BASE64_TABLE: [char; 64] = [
 
 static PADDING: char = '=';
 
-use hex;
-fn string_to_hex(s: String) -> Vec<u8> {
-    hex::decode(s).unwrap()
-}
-
 fn base64_encode_hex(hex: String) -> String {
     let mut result = String::new();
-    let bytes = string_to_hex(hex);
+    let bytes = hex_to_bytes(hex);
     let mut mask: u32;
     let mut buf: u32 = 0;
 
@@ -47,6 +42,28 @@ fn base64_encode_hex(hex: String) -> String {
     result
 }
 
+fn hex_to_bytes(hex: String) -> Vec<u8> {
+    let mut bytes: Vec<u8> = Vec::new();
+
+    for ch in hex.as_bytes().chunks(2) {
+        let mut byte: u8 = 0;
+
+        for b in ch {
+            if ch.len() == 2 { byte <<= 4; }
+
+            match b {
+                b'0'..=b'9' => byte |= b - b'0',
+                b'A'..=b'F' => byte |= b - b'A' + 10,
+                b'a'..=b'f' => byte |= b - b'a' + 10,
+                _ => panic!("INVALID HEX CHARACTER FOUND -> '{}'", b),
+            }
+        }
+
+        bytes.push(byte);
+    }
+    
+    bytes
+}
 fn main() {
     println!("{}", base64_encode_hex("deadbeef".to_string()));
 }
